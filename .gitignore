@@ -1,3 +1,8 @@
 .idea/
 target/
 range.query.cache.iml
+.cache-main
+.classpath
+.project
+.settings/
+
