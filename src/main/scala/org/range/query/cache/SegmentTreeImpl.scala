@@ -13,6 +13,8 @@ case object Empty extends Tree[Nothing]
  *
  *         Its a predefined  min max range segment tree where we can do query as well as update to particular node
  *         with propagation
+ *
+ *
  */
 class SimpleSegmentTreeImpl {
 
@@ -139,7 +141,6 @@ class SimpleSegmentTreeImpl {
                   x.value
                 }
                 case None => {
-                  x.value = Option(getData()) //get data if not found
                   x.value
                 }
               }
@@ -147,8 +148,8 @@ class SimpleSegmentTreeImpl {
               case false => {
                 val res1 = query(x.left, leftPos, rightPos)
                 val res2 = query(x.right, leftPos, rightPos)
-                x.value = merge(res1, res2)
-                x.value
+                merge(res1, res2)
+
               }
             }
         }
@@ -159,7 +160,6 @@ class SimpleSegmentTreeImpl {
           case true => x.value match {
             case Some(y) => x.value
             case None => {
-              x.value = Option(getData()) //get data if not found
               x.value
             }
           }
@@ -170,9 +170,6 @@ class SimpleSegmentTreeImpl {
     }
   }
 
-  def getData(): Int = {
-    1
-  }
 
   def merge(res1: Option[Int], res2: Option[Int]): Option[Int] = {
     Option(res1.getOrElse(0) + res2.getOrElse(0))
@@ -184,23 +181,23 @@ object SimpleSegmentTreeImpl {
     val segTre = new SimpleSegmentTreeImpl
     val root = segTre.build(0, 6)
     println("----------------------------------------------------------------------------")
-    println(segTre.query(root, 2, 3))
-    println("----------------------------------------------------------------------------")
-    segTre.show(root, 1, 10)
-    println("----------------------------------------------------------------------------")
-    println(segTre.query(root, 0, 3))
-    println("----------------------------------------------------------------------------")
     segTre.update(root, 2, 2)
+    assert(segTre.query(root, 2, 3).get==2)
+    assert(segTre.query(root, 0, 3).get==2)
+    segTre.update(root, 1, 2)
+    assert(segTre.query(root, 0, 3).get==4)
+    segTre.update(root, 4, 3)
+    segTre.show(root, 1, 10)
+    assert(segTre.query(root, 0, 4).get==7)
+    segTre.update(root, 6, 5)
+    println("----------------------------------------------------------------------------")
+    assert(segTre.query(root, 5, 6).get==5)
+    assert(segTre.query(root, 4, 6).get==8)
     segTre.show(root, 1, 10)
     println("----------------------------------------------------------------------------")
-    println(segTre.query(root, 5, 6))
-    println("----------------------------------------------------------------------------")
-    segTre.show(root, 1, 10)
-    println(segTre.query(root, 0, 4))
-    println("----------------------------------------------------------------------------")
-    segTre.show(root, 1, 10)
-    println("----------------------------------------------------------------------------")
-    println(segTre.query(root, 2, 3))
+    assert(segTre.query(root, 2, 3).get==2)
+    segTre.update(root, 1, 3)
+    assert(segTre.query(root, 0, 5).get==8)
     println("----------------------------------------------------------------------------")
     segTre.show(root, 1, 10)
   }
