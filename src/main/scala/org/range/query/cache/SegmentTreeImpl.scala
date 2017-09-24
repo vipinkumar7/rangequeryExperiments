@@ -11,65 +11,95 @@ case object Empty extends Tree[Nothing]
 /**
  * @author Vipin Kumar
  *
- * Its a predefined  min max range segment tree where we can do query as well as update to particular node
- * with propagation
+ *         Its a predefined  min max range segment tree where we can do query as well as update to particular node
+ *         with propagation
  */
 class SimpleSegmentTreeImpl {
 
-  def build(min_range: Long, max_range: Long, default: Int): Tree[Int] = {
+  def build(min_range: Long, max_range: Long): Tree[Int] = {
 
     (min_range == max_range) match {
 
-      case true => Leaf[Int](Option(default), min_range)
+      case true => Leaf[Int](None, min_range)
       case false => {
 
         val mid = (min_range + max_range) / 2
-        Node[Int](Option(default), min_range, max_range, build(min_range, mid, default), build(mid + 1, max_range, default))
+        Node[Int](None, min_range, max_range, build(min_range, mid), build(mid + 1, max_range))
 
       }
 
     }
   }
 
-  def update(tree: Tree[Int], leftPos: Int, rightPos: Int, newvalue: Int): Option[Int] = {
+  def update(tree: Tree[Int], idx: Int, newvalue: Int): Unit = {
 
     tree match {
       case x: Node[Int] => {
-
         //completely outside
-        (x.start > rightPos && x.end < leftPos) match {
+        (x.start == x.end) match {
+          case true => x.value = Option(newvalue)
 
-          case true => None
           case false => {
-
-            // range matched
-            (x.start == leftPos && x.end == rightPos) match {
-
-              case true => {
-                x.value = Option(newvalue)
-                x.value
-              }
-              case false => {
-                val res1 = update(x.left, leftPos, rightPos, newvalue)
-                val res2 = update(x.right, leftPos, rightPos, newvalue)
-                x.value = merge(res1, res2)
-                x.value
-              }
+            val mid = (x.start + x.end) / 2
+            (x.start <= idx && idx <= mid) match {
+              case true => update(x.left, idx, newvalue)
+              case false => update(x.right, idx, newvalue)
             }
+
+            x.value = add(x.left, x.right)
           }
+
         }
       }
-
       case x: Leaf[Int] => {
-        (x.pos == leftPos && leftPos == rightPos) match {
+        (x.pos == idx) match {
           case true => {
             x.value = Option(newvalue)
-            x.value
           }
-          case false => x.value
+          case false => {
+
+          }
         }
       }
     }
+  }
+
+  def add(left: Tree[Int], right: Tree[Int]): Option[Int] = {
+
+    left match {
+
+      case x: Node[Int] => {
+
+        right match {
+
+          case a: Node[Int] => {
+
+            Option(x.value.getOrElse(0) + a.value.getOrElse(0))
+
+          }
+          case b: Leaf[Int] => {
+            Option(x.value.getOrElse(0) + b.value.getOrElse(0))
+          }
+        }
+
+      }
+
+      case y: Leaf[Int] => {
+        right match {
+
+          case a: Node[Int] => {
+
+            Option(y.value.getOrElse(0) + a.value.getOrElse(0))
+
+          }
+          case b: Leaf[Int] => {
+            Option(y.value.getOrElse(0) + b.value.getOrElse(0))
+          }
+        }
+
+      }
+    }
+
   }
 
   def show(tree: Tree[Int], space: Int, count: Int): Unit = {
@@ -81,14 +111,14 @@ class SimpleSegmentTreeImpl {
         for (i <- count to space) {
           print(" ")
         }
-        println(x.value.get)
+        println(x.value.getOrElse(0))
         show(x.left, space + count, count)
       }
       case x: Leaf[Int] => {
         for (i <- count to space) {
           print(" ")
         }
-        println(x.value.get)
+        println(x.value.getOrElse(0))
       }
       case _ =>
     }
@@ -103,10 +133,11 @@ class SimpleSegmentTreeImpl {
           case true => None
           case false =>
             //Completely within range
-            (leftPos == x.start && rightPos == x.end) match {
-
+            (leftPos <= x.start && x.end <= rightPos) match {
               case true => x.value match {
-                case Some(y) => x.value
+                case Some(y) => {
+                  x.value
+                }
                 case None => {
                   x.value = Option(getData()) //get data if not found
                   x.value
@@ -114,21 +145,29 @@ class SimpleSegmentTreeImpl {
               }
               //not in  range
               case false => {
-                val mid = (leftPos + rightPos) / 2
-                val res1 = query(x.left, leftPos, mid)
-                val res2 = query(x.right, mid, rightPos)
-                merge(res1, res2)
+                val res1 = query(x.left, leftPos, rightPos)
+                val res2 = query(x.right, leftPos, rightPos)
+                x.value = merge(res1, res2)
+                x.value
               }
             }
         }
       }
 
       case x: Leaf[Int] => {
-        x.value = Option(getData()) //get data if not found
-        x.value
+        (leftPos == x.pos || rightPos == x.pos) match {
+          case true => x.value match {
+            case Some(y) => x.value
+            case None => {
+              x.value = Option(getData()) //get data if not found
+              x.value
+            }
+          }
+          case false => None
+        }
       }
-    }
 
+    }
   }
 
   def getData(): Int = {
@@ -136,30 +175,33 @@ class SimpleSegmentTreeImpl {
   }
 
   def merge(res1: Option[Int], res2: Option[Int]): Option[Int] = {
-    res1 match {
-      case Some(x) => {
-        res2 match {
-          case Some(y) => {
-            Option(x + y)
-          }
-          case None =>
-            res1
-        }
-      }
-      case None => res2
-    }
+    Option(res1.getOrElse(0) + res2.getOrElse(0))
   }
 }
 
 object SimpleSegmentTreeImpl {
   def main(args: Array[String]) {
     val segTre = new SimpleSegmentTreeImpl
-    val root = segTre.build(0, 6, 0)
+    val root = segTre.build(0, 6)
+    println("----------------------------------------------------------------------------")
+    println(segTre.query(root, 2, 3))
+    println("----------------------------------------------------------------------------")
     segTre.show(root, 1, 10)
-    println()
-    println(segTre.query(root, 2, 3).get)
-    segTre.update(root, 4, 5, 2)
-    println()
+    println("----------------------------------------------------------------------------")
+    println(segTre.query(root, 0, 3))
+    println("----------------------------------------------------------------------------")
+    segTre.update(root, 2, 2)
+    segTre.show(root, 1, 10)
+    println("----------------------------------------------------------------------------")
+    println(segTre.query(root, 5, 6))
+    println("----------------------------------------------------------------------------")
+    segTre.show(root, 1, 10)
+    println(segTre.query(root, 0, 4))
+    println("----------------------------------------------------------------------------")
+    segTre.show(root, 1, 10)
+    println("----------------------------------------------------------------------------")
+    println(segTre.query(root, 2, 3))
+    println("----------------------------------------------------------------------------")
     segTre.show(root, 1, 10)
   }
 }
