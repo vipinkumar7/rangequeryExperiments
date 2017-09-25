@@ -198,7 +198,7 @@ object SimpleSegmentTreeImpl {
     assert(segTre.query(root, 2, 3).get==2)
     segTre.update(root, 1, 3)
     assert(segTre.query(root, 0, 5).get==8)
-    println("----------------------------------------------------------------------------")
     segTre.show(root, 1, 10)
+    println("----------------------------------------------------------------------------")
   }
 }
