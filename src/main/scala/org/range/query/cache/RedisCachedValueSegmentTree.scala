@@ -6,4 +6,6 @@ class RedisCachedValueSegmentTree[T] {
   def build(tree :Tree[T]):Unit={
     
   }
+  
+  
 }
