@@ -36,12 +36,17 @@ class IntervalQueryTests extends FlatSpec {
     for (i <- 0 to intervals.length - 1) {
       root = IntervalTreeImpl.insert(root, intervals(i))
     }
+
+
     val allIn = scala.collection.mutable.ListBuffer.empty[Interval]
     IntervalTreeImpl.inorder(root, allIn);
     IntervalTreeImpl.printTree(allIn)
 
+
     val buf = scala.collection.mutable.ListBuffer.empty[Interval]
-    val d = IntervalTreeImpl.searchInterval(root, Interval(15, 29), buf)
+     IntervalTreeImpl.searchInterval(root, Interval(15, 29), buf)
     buf.foreach { x => println(x.low + " :: " + x.high) }
   }
+
+
 }
