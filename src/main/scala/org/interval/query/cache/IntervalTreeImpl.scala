@@ -1,5 +1,7 @@
 package org.interval.query.cache
 
+import scala.collection.mutable.ListBuffer
+
 case class Interval(val low: Long, val high: Long)
 
 case class Node(var interval: Interval, var max: Long, var left: Node, var right: Node)
@@ -13,12 +15,9 @@ object IntervalTreeImpl {
     val root_low = root.interval.low
     if (interval.low < root_low) {
       root.left = insert(root.left, interval)
-
     } else {
       root.right = insert(root.right, interval)
-
     }
-
     if (root.max < interval.high) {
       root.max = interval.high
     }
@@ -26,53 +25,54 @@ object IntervalTreeImpl {
     return root;
   }
 
-  def isOverlap(i1: Interval, i2: Interval): Boolean = {
+  def isOverlap(root_interval: Interval, interval: Interval): Boolean = {
 
-    if (i1.low <= i2.high && i2.low <= i1.high)
+    if (root_interval.low >= interval.low && root_interval.high <= interval.high)
       return true
     return false
   }
 
-  def searchInterval(root: Node, interval: Interval): Interval = {
+  def searchInterval(root: Node, interval: Interval, intervals: ListBuffer[Interval]): Unit = {
 
-    if (root == null) return null;
-
-    if (isOverlap(root.interval, interval))
-      return root.interval
+    if (root == null) return ;
+    println(root.interval.low + "   :   " + root.interval.high)
+    if (isOverlap(root.interval, interval)) {
+      intervals += (root.interval)
+    }
 
     if (root.left != null && root.left.max >= interval.low)
-      return searchInterval(root.left, interval)
+      searchInterval(root.left, interval, intervals)
 
-    return searchInterval(root.right, interval)
+    searchInterval(root.right, interval, intervals)
 
   }
 
-  def inorder(root: Node): Unit =
+  def inorder(root: Node, allNodes: ListBuffer[Interval]): Unit =
     {
       if (root == null) return ;
 
-      inorder(root.left);
-
-      println("[" + root.interval.low + ", " + root.interval.high + " ]"
-        + " max = " + root.max);
-
-      inorder(root.right);
+      inorder(root.left, allNodes);
+      allNodes += root.interval
+      inorder(root.right, allNodes);
     }
 
-  def main(args: Array[String]): Unit = {
+  def printTree(allNodes: ListBuffer[Interval]): Unit = {
 
-    val intervals = Array(Interval(15, 20), Interval(10, 30),
-      Interval(17, 19),
-      Interval(5, 20), Interval(12, 15), Interval(30, 40))
-
-    var root = null.asInstanceOf[Node]
-    for (i <- 0 to intervals.length - 1) {
-      root = insert(root, intervals(i))
+    var mid =allNodes.size / 2;
+    var sta = mid-1
+    var end = mid+1
+    println("[" + allNodes(mid).low + ", " + allNodes(mid).high + " ]")
+    while (sta >= 0 && end < allNodes.size - 1) {
+     
+      println("[" + allNodes(sta).low + ", " + allNodes(sta).high + " ]" + "<->"
+        + "[" + allNodes(end).low + ", " + allNodes(end).high + " ]")
+      sta = sta - 1
+      end = end + 1
     }
-
-    inorder(root);
-
-    val d = searchInterval(root, Interval(6, 7))
-    println(d)
+    
+    while(sta>=0){
+      println("[" + allNodes(sta).low + ", " + allNodes(sta).high + " ]");
+       sta=sta-1
+    }
   }
 }
